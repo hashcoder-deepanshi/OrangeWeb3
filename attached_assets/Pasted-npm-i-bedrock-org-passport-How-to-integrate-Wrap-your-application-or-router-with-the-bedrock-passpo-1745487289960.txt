@@ -1,0 +1,83 @@
+npm i @bedrock_org/passport
+How to integrate
+Wrap your application or router with the bedrock-passport provider
+
+import { BedrockPassportProvider } from "@bedrock_org/passport";
+...
+const Provider: React.FC<ProviderProps> = ({ children }) => {
+  return (
+    <BedrockPassportProvider
+      baseUrl="https://api.bedrockpassport.com" // Base API URL – no need to change this. Leave as is.
+      authCallbackUrl="https://yourdomain.com/auth/callback" // Replace with your actual callback URL
+      tenantId="orange-abc123"  // Your assigned tenant ID - you can request one at https://vibecodinglist.com/orange-id-integration
+    >
+      {children}
+    </BedrockPassportProvider>
+  );
+};
+Configuration Options
+Parameter	Description
+baseUrl	The Bedrock Passport API base URL
+authCallbackUrl	The URL where users will be redirected after authentication
+tenantId	Your Bedrock Passport tenant identifier
+walletConnectId	Your WalletConnect project ID for wallet connections
+Create the callback page for handling the token from server
+
+function AuthCallback() {
+  const { loginCallback } = useBedrockPassport();
+
+  useEffect(() => {
+    const login = async (token: string, refreshToken: string) => {
+      const success = await loginCallback(token, refreshToken);
+      if (success) {
+        //redirect to the page you want
+        window.location.href = "/";
+      }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+
+    const token = params.get("token");
+    const refreshToken = params.get("refreshToken");
+
+    if (token && refreshToken) {
+      login(token, refreshToken);
+    }
+  }, [loginCallback]);
+
+  return <div>Signing in...</div>;
+}
+How to use
+Once you wrapped the application with the provider, you can start to add in the component and hooks for where you need
+
+import { useBedrockPassport, LoginPanel, Button } from "@bedrock_org/passport";
+import "@bedrock_org/passport/dist/style.css";
+
+...
+<LoginPanel
+  // Content options — No changes needed unless specific customization is required
+  title="Sign in to"
+  logo="https://irp.cdn-website.com/e81c109a/dms3rep/multi/orange-web3-logo-v2a-20241018.svg" // keep the Orange Logo
+  logoAlt="Orange Web3"
+  walletButtonText="Connect Wallet"
+  showConnectWallet={false}
+  separatorText="OR"
+
+  // Feature toggles — Adjust these based on which login methods you want to support
+  features={{
+    enableWalletConnect: false,
+    enableAppleLogin: true,
+    enableGoogleLogin: true,
+    enableEmailLogin: true,
+   }}
+
+  // Style options — Keep as-is unless UI tweaks are needed
+  titleClass="text-xl font-bold"
+  logoClass="ml-2 md:h-8 h-6"
+  panelClass="container p-2 md:p-8 rounded-2xl max-w-[480px]"
+  buttonClass="hover:border-orange-500"
+  separatorTextClass="bg-orange-900 text-gray-500"
+  separatorClass="bg-orange-900"
+  linkRowClass="justify-center"
+  headerClass="justify-center"
+/>
